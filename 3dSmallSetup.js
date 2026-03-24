@@ -17,14 +17,13 @@ let renderer = {};
 let controls = {};
 let controlsDomElement = {};
 
-
 const lights = [];
 
 function setupLights() {
     const ambientLight = new THREE.AmbientLight(0xffffff);
     scene.add(ambientLight);
     for (const light of lights) {
-        light.intensity = 15;
+        light.intensity = 15; // BLENDER-THREE.JS LIGHT ADJUSTEMENT
     }
 }
 
@@ -44,6 +43,7 @@ function onSceneLoaded(model)
             statue = child;
         } else if (child.isLight) {
             lights.push(child);
+            console.log("Pushed light");
         }
 
         if (child.name.startsWith("CamPosition")) {
@@ -82,8 +82,8 @@ function resize () {
 // INIT SCENE AND CAMERA
 // ------------
 
-const fov = 20;
-const fovNarrow = 15; // For (narrow) mobile devices
+const fov = 50;
+const fovNarrow = 45; // For (narrow) mobile devices
 const narrowThreshold = 500;
 
 let camera;
@@ -96,11 +96,21 @@ function init() {
     // Select and clear container
     // container = document.querySelector('#project-details-section .project-slider');
     // let outherContainer = document.querySelector("#webgl-container")
-    let outherContainer = document.querySelector("#webgl-container")
+    let referenceContainer = document.querySelector("#reference")
     container = document.createElement("div");
-    outherContainer.appendChild(container);
+
+    // Add container after (with same parent)
+    referenceContainer.after(container);
+    referenceContainer.style.position = "relative";
+    container.style.zIndex = 9999;
+    container.style.position = "absolute";
+    container.style.top = "100%"; // Se coloca justo donde termina el padre
+    container.style.left = "0";
+    container.style.width = "100%"; // Mismo ancho que el padre
+    // container.style.marginTop = "15px"; // Desfase adicional
+
     // Save original size
-    sizes.width = container.clientWidth - 1; sizes.height = container.clientHeight - 1;
+    sizes.width = container.clientWidth; sizes.height = container.clientHeight;
     container.classList.add('webgl-container');
     container.innerHTML = "";
     container.style.height = "100%";
@@ -108,8 +118,6 @@ function init() {
     // Append canvas
     canvas = document.createElement("canvas");
     container.appendChild(canvas);
-    // canvas.style.zIndex = '1';
-
 
     renderer = new THREE.WebGLRenderer({
         canvas: canvas,
@@ -140,6 +148,8 @@ function init() {
     controls = new OrbitControls(camera);
     controls.connect( controlsDomElement );
     controls.enableDamping = true; // Suaviza el movimiento (da inercia)
+    controls.enablePan = false;
+
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false; // Mantiene el eje Y estable
 
@@ -163,11 +173,12 @@ function init() {
         const currentAzimuth = controls.getAzimuthalAngle();
         controls.minAzimuthAngle = currentAzimuth - 45 * (Math.PI / 180);
         controls.maxAzimuthAngle = currentAzimuth + 40 * (Math.PI / 180);
+        controls.update();
 
-        const currentPolar = controls.getPolarAngle();
-        controls.minPolarAngle = 45 * (Math.PI / 180);
+        const currentPolar = 60 * (Math.PI / 180);
+        controls.minPolarAngle = currentPolar;
         // controls.minPolarAngle = currentPolar - 2 * (Math.PI / 180); // 45 grados hacia arriba
-        controls.maxPolarAngle = 98 * (Math.PI / 180); // Un poco hacia abajo
+        controls.maxPolarAngle = currentPolar; // Un poco hacia abajo
         controls.update();
 
         camera.position.copy(camPositions[0].position);
