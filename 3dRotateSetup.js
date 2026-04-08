@@ -3,7 +3,6 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { GridHelper} from "./three/src/helpers/GridHelper.js";
 
-const modelPath = "./discobolo.glb";
 
 const scene = new THREE.Scene();
 
@@ -85,13 +84,26 @@ function resize () {
 const fov = 50;
 const fovNarrow = 45; // For (narrow) mobile devices
 const narrowThreshold = 500;
-
+let cameraYOffset = 30;
 let camera;
 
 let camPositions = [];
 
-function init() {
+let modelPath = "./caesar.glb"; // or discobolo.glb
 
+function chooseModel() {
+    const params = new URLSearchParams(window.location.search);
+    const modelParam = params.get('model'); // Busca el valor de ?model=
+
+    // 3. Cambiamos el path si el parámetro existe
+    if (modelParam === 'discobolo') {
+        modelPath = "./discobolo.glb";
+    } else {
+        cameraYOffset = 0;
+    }
+}
+function init() {
+    chooseModel();
     console.log("Initializing 3D scene...");
     // Select and clear container
     // container = document.querySelector('#project-details-section .project-slider');
@@ -108,6 +120,7 @@ function init() {
     container.style.paddingTop = "20vh"; // Hacer hueco
     container.style.paddingRight= "10vw";
     document.body.appendChild(container);
+    // document.body.insertAfter(container, referenceContainer);
     // Save original size
     sizes.width = container.clientWidth; sizes.height = container.clientHeight;
     container.classList.add('webgl-container');
@@ -148,7 +161,7 @@ function init() {
     controls.connect( controlsDomElement );
     controls.enableDamping = true; // Suaviza el movimiento (da inercia)
     controls.enablePan = false;
-
+    controls.enableZoom = false;
     controls.dampingFactor = 0.05;
     controls.screenSpacePanning = false; // Mantiene el eje Y estable
 
@@ -181,7 +194,7 @@ function init() {
         controls.update();
 
         camera.position.copy(camPositions[0].position);
-        camera.position.y -= 30; // TODO: referencia bien
+        camera.position.y -= cameraYOffset;
 
         const initialDistance = camera.position.distanceTo(controls.target);
         controls.minDistance = initialDistance;
@@ -196,16 +209,38 @@ function init() {
     } );
 }
 
+let scrollPercent = 0;
+window.addEventListener("scroll", () => {
+        // Calculamos qué porcentaje de la página se ha recorrido
+        const scrollTop = window.scrollY;
+        const docHeight = document.body.scrollHeight - window.innerHeight;
+        scrollPercent = scrollTop / docHeight;
+    }
+);
+
 // -------------
 // MAIN LOOP
 
 const clock = new THREE.Clock();
 let deltaTime;
-
+// let initialCamPos = new THREE.Vector3().copy(camPositions[0].position);
 function animate() {
 
     controls.update(); // Solo necesario si enableDamping = true o autoRotate = true
 
+    if (scene) {
+        // scene.rotation.y = scrollPercent * (Math.PI * 2); // No lerp
+        // Cool lerp
+        scene.rotation.y += (scrollPercent * Math.PI * 2 - scene.rotation.y) * 0.1;
+    }
+    // Camera zoom
+
+    camera.fov = 30 * scrollPercent + 50 *(1 - scrollPercent);
+    camera.updateProjectionMatrix();
+    // const targetPos = new THREE.Vector3().copy(camPositions[0]);
+    // targetPos.lerp(camPositions[1], scrollPercent); // scrollPercent debe ser de 0 a 1
+    // camera.position.copy(targetPos);
+    // camera.position.y -= cameraYOffset;
     // Render
     renderer.render(scene, camera);
 
