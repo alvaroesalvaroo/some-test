@@ -96,19 +96,18 @@ function init() {
     // Select and clear container
     // container = document.querySelector('#project-details-section .project-slider');
     // let outherContainer = document.querySelector("#webgl-container")
-    let referenceContainer = document.querySelector("#reference")
+    // let referenceContainer = document.querySelector("#reference")
     container = document.createElement("div");
 
-    // Add container after (with same parent)
-    referenceContainer.after(container);
-    referenceContainer.style.position = "relative";
-    container.style.zIndex = 9999;
-    container.style.position = "absolute";
-    container.style.top = "100%"; // Se coloca justo donde termina el padre
-    container.style.left = "0";
-    container.style.width = "100%"; // Mismo ancho que el padre
-    // container.style.marginTop = "15px"; // Desfase adicional
 
+    container.style.zIndex = 10;
+    container.style.position = "fixed"; // Clave para que no se mueva con el scroll
+    container.style.top = "50%";        // Mitad de la altura
+    container.style.right = "0";        // Lo pega al borde derecho
+    container.style.transform = "translateY(-50%)"; // Corregir altura
+    container.style.paddingTop = "20vh"; // Hacer hueco
+    container.style.paddingRight= "10vw";
+    document.body.appendChild(container);
     // Save original size
     sizes.width = container.clientWidth; sizes.height = container.clientHeight;
     container.classList.add('webgl-container');
@@ -182,6 +181,7 @@ function init() {
         controls.update();
 
         camera.position.copy(camPositions[0].position);
+        camera.position.y -= 30; // TODO: referencia bien
 
         const initialDistance = camera.position.distanceTo(controls.target);
         controls.minDistance = initialDistance;
