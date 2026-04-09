@@ -105,13 +105,42 @@ function chooseModel() {
     const params = new URLSearchParams(window.location.search);
     const modelParam = params.get('model'); // Busca el valor de ?model=
 
-    // 3. Cambiamos el path si el parámetro existe
     if (modelParam === 'discobolo') {
         modelPath = "./discobolo.glb";
     } else {
         cameraYOffset = 0;
     }
 }
+
+function createControls() {
+    const params = new URLSearchParams(window.location.search);
+    const controlsParam = params.get('controls'); // Busca el valor de ?model=
+
+    controlsDomElement = document.createElement('div');
+    controlsDomElement.classList.add('controls');
+    controlsDomElement.style.position = 'absolute';
+    controlsDomElement.style.top = '0';
+    controlsDomElement.style.width = '100%';
+    controlsDomElement.style.height = '100%';
+    controlsDomElement.style.pointerEvents = 'auto';
+    controlsDomElement.style.zIndex = '100';
+    container.appendChild(controlsDomElement);
+    // document.body.appendChild(controlsDomElement);
+
+    controls = new OrbitControls(camera);
+    controls.connect( controlsDomElement );
+    controls.enableDamping = true; // Suaviza el movimiento (da inercia)
+    controls.enablePan = false;
+    controls.enableZoom = false;
+    controls.dampingFactor = 0.05;
+    controls.screenSpacePanning = false; // Mantiene el eje Y estable
+
+    if (controlsParam === 'disabled') {
+        controlsDomElement.style.pointerEvents = 'none';
+        controlsDomElement.style.zIndex = '0';
+    }
+}
+
 function init() {
     chooseModel();
     if (isMobilePlatform()) {
@@ -130,7 +159,7 @@ function init() {
     container.style.top = "50%";        // Mitad de la altura
     container.style.right = "0";        // Lo pega al borde derecho
     container.style.transform = "translateY(-50%)"; // Corregir altura
-    container.style.paddingTop = "20vh"; // Hacer hueco
+    container.style.paddingTop = "20svh"; // Hacer hueco
     container.style.paddingRight= "10vw";
     container.style.maxWidth = "50vw";
     document.body.appendChild(container);
@@ -160,24 +189,7 @@ function init() {
     );
 
     // Controls require an invisible dom element
-    controlsDomElement = document.createElement('div');
-    controlsDomElement.classList.add('controls');
-    controlsDomElement.style.position = 'absolute';
-    controlsDomElement.style.top = '0';
-    controlsDomElement.style.width = '100%';
-    controlsDomElement.style.height = '100%';
-    controlsDomElement.style.pointerEvents = 'auto';
-    controlsDomElement.style.zIndex = '100'; // Debajo de CSS Renderer y debajo de WebGl Renderer, pero capturando pointer events
-    container.appendChild(controlsDomElement);
-    // document.body.appendChild(controlsDomElement);
-
-    controls = new OrbitControls(camera);
-    controls.connect( controlsDomElement );
-    controls.enableDamping = true; // Suaviza el movimiento (da inercia)
-    controls.enablePan = false;
-    controls.enableZoom = false;
-    controls.dampingFactor = 0.05;
-    controls.screenSpacePanning = false; // Mantiene el eje Y estable
+    createControls();
 
 
     window.addEventListener("resize", resize);
