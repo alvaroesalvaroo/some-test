@@ -67,7 +67,8 @@ function resize () {
     console.log("Resized lab small canvas to " + sizes.width + ", " + sizes.height);
     camera.aspect = sizes.width / sizes.height;
     let isNarrowDevice = sizes.width < narrowThreshold;
-    camera.setFocalLength(isNarrowDevice ? fovNarrow : fov);
+    let initialFov = (isNarrowDevice ? fovNarrow : fov);
+    camera.setFocalLength(initialFov);
     camera.updateProjectionMatrix();
 
     // Update renderer
@@ -83,6 +84,7 @@ function resize () {
 
 const fov = 50;
 const fovNarrow = 45; // For (narrow) mobile devices
+let initialFov = fov;
 const narrowThreshold = 500;
 let cameraYOffset = 30;
 let camera;
@@ -90,6 +92,14 @@ let camera;
 let camPositions = [];
 
 let modelPath = "./caesar.glb"; // or discobolo.glb
+let minFov = 30;
+function isMobilePlatform() {
+    if (navigator.userAgentData) {
+        return navigator.userAgentData.mobile;
+    }
+    const userAgent = navigator.userAgent || navigator.vendor || window.opera;
+    return /android|iphone|ipad|ipod|blackberry|iemobile|opera mini/i.test(userAgent.toLowerCase());
+}
 
 function chooseModel() {
     const params = new URLSearchParams(window.location.search);
@@ -104,6 +114,9 @@ function chooseModel() {
 }
 function init() {
     chooseModel();
+    if (isMobilePlatform()) {
+        minFov = 43;
+    }
     console.log("Initializing 3D scene...");
     // Select and clear container
     // container = document.querySelector('#project-details-section .project-slider');
@@ -112,13 +125,14 @@ function init() {
     container = document.createElement("div");
 
 
-    container.style.zIndex = 10;
+    container.style.zIndex = 100;
     container.style.position = "fixed"; // Clave para que no se mueva con el scroll
     container.style.top = "50%";        // Mitad de la altura
     container.style.right = "0";        // Lo pega al borde derecho
     container.style.transform = "translateY(-50%)"; // Corregir altura
     container.style.paddingTop = "20vh"; // Hacer hueco
     container.style.paddingRight= "10vw";
+    container.style.maxWidth = "50vw";
     document.body.appendChild(container);
     // document.body.insertAfter(container, referenceContainer);
     // Save original size
@@ -235,7 +249,7 @@ function animate() {
     }
     // Camera zoom
 
-    camera.fov = 30 * scrollPercent + 50 *(1 - scrollPercent);
+    camera.fov = minFov * scrollPercent + initialFov *(1 - scrollPercent);
     camera.updateProjectionMatrix();
     // const targetPos = new THREE.Vector3().copy(camPositions[0]);
     // targetPos.lerp(camPositions[1], scrollPercent); // scrollPercent debe ser de 0 a 1
